@@ -1,3 +1,51 @@
+#!/usr/bin/env bash
+set -e
+
+echo "======================================"
+echo "Feature 016 - Prevent Reactivation"
+echo "======================================"
+
+########################################
+# lifecycle.go
+########################################
+
+cat > internal/domain/product/lifecycle.go <<'EOGO'
+package product
+
+func (p *Product) Activate() {
+	if p == nil {
+		return
+	}
+
+	if p.status == StatusDiscontinued {
+		return
+	}
+
+	if p.status == StatusInactive {
+		p.status = StatusActive
+	}
+}
+
+func (p *Product) Deactivate() {
+	if p == nil {
+		return
+	}
+
+	if p.status == StatusDiscontinued {
+		return
+	}
+
+	if p.status == StatusActive {
+		p.status = StatusInactive
+	}
+}
+EOGO
+
+########################################
+# lifecycle_test.go
+########################################
+
+cat > internal/domain/product/lifecycle_test.go <<'EOGO'
 package product
 
 import "testing"
@@ -44,3 +92,9 @@ func TestCannotDeactivateDiscontinuedProduct(t *testing.T) {
 		t.Fatalf("expected %s, got %s", StatusDiscontinued, p.Status())
 	}
 }
+EOGO
+
+gofmt -w internal/domain/product
+
+echo
+echo "Feature 016 completed successfully."
