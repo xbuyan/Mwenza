@@ -1,0 +1,34 @@
+package inventory
+
+import (
+	"errors"
+
+	"github.com/mwenza/mwenza/internal/platform/shared/quantity"
+)
+
+var (
+	ErrInvalidReservationQuantity = errors.New("reservation quantity must be greater than zero")
+	ErrInsufficientAvailableStock = errors.New("insufficient available stock")
+)
+
+func (i *Inventory) ReserveStock(q quantity.Quantity) error {
+	if q.IsZero() {
+		return ErrInvalidReservationQuantity
+	}
+
+	available, err := i.Available()
+	if err != nil {
+		return ErrInsufficientAvailableStock
+	}
+
+	remaining, err := available.Subtract(q)
+	if err != nil {
+		return ErrInsufficientAvailableStock
+	}
+
+	_ = remaining // confirms the subtraction succeeded
+
+	i.reserved = i.reserved.Add(q)
+
+	return nil
+}
