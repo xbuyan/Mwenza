@@ -1,11 +1,12 @@
 package product
 
 type Product struct {
-	id     string
-	sku    SKU
-	name   string
-	unit   Unit
-	status Status
+	id          string
+	sku         SKU
+	name        string
+	description string
+	unit        Unit
+	status      Status
 }
 
 func New(id string, sku SKU, name string, unit Unit) (*Product, error) {
@@ -26,10 +27,11 @@ func New(id string, sku SKU, name string, unit Unit) (*Product, error) {
 	}
 
 	return &Product{
-		id:     id,
-		sku:    sku,
-		name:   name,
-		unit:   unit,
-		status: StatusActive,
+		id:          id,
+		sku:         sku,
+		name:        name,
+		description: "",
+		unit:        unit,
+		status:      StatusActive,
 	}, nil
 }
