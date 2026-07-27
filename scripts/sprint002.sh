@@ -2,147 +2,135 @@
 set -euo pipefail
 
 echo "======================================"
-echo "Mwenza Sprint 002 - Shared Value Objects"
+echo "Mwenza Sprint 002 - Domain Foundation"
 echo "======================================"
 
-mkdir -p \
-internal/platform/shared/currency \
-internal/platform/shared/money \
-internal/platform/shared/quantity
+mkdir -p internal/platform/domain
 
 ########################################
-# Currency
+# eventrecorder.go
 ########################################
 
-cat > internal/platform/shared/currency/currency.go <<'EOGO'
-package currency
+cat > internal/platform/domain/eventrecorder.go <<'EOGO'
+package domain
 
-type Currency string
+import "github.com/mwenza/mwenza/internal/platform/events"
 
-const (
-	KES Currency = "KES"
-	USD Currency = "USD"
-	EUR Currency = "EUR"
-)
+type EventRecorder struct {
+	events []events.Event
+}
 
-func (c Currency) String() string {
-	return string(c)
+func (r *EventRecorder) Record(event events.Event) {
+	r.events = append(r.events, event)
+}
+
+func (r *EventRecorder) PendingEvents() []events.Event {
+	out := make([]events.Event, len(r.events))
+	copy(out, r.events)
+	return out
+}
+
+func (r *EventRecorder) ClearEvents() {
+	r.events = nil
 }
 EOGO
 
 ########################################
-# Money
+# baseaggregate.go
 ########################################
 
-cat > internal/platform/shared/money/money.go <<'EOGO'
-package money
+cat > internal/platform/domain/baseaggregate.go <<'EOGO'
+package domain
 
 import (
-	"errors"
-
-	"github.com/mwenza/mwenza/internal/platform/shared/currency"
+	"github.com/mwenza/mwenza/internal/platform/events"
+	"github.com/mwenza/mwenza/internal/platform/ids"
 )
 
-var ErrCurrencyMismatch = errors.New("currency mismatch")
-
-type Money struct {
-	amount   int64
-	currency currency.Currency
+type BaseAggregate struct {
+	id ids.ID
+	EventRecorder
 }
 
-func New(amount int64, curr currency.Currency) Money {
-	return Money{
-		amount: amount,
-		currency: curr,
+func NewBaseAggregate(id ids.ID) BaseAggregate {
+	return BaseAggregate{
+		id: id,
 	}
 }
 
-func (m Money) Amount() int64 {
-	return m.amount
+func (a BaseAggregate) ID() ids.ID {
+	return a.id
 }
 
-func (m Money) Currency() currency.Currency {
-	return m.currency
-}
-
-func (m Money) Add(other Money) (Money, error) {
-	if m.currency != other.currency {
-		return Money{}, ErrCurrencyMismatch
-	}
-
-	return Money{
-		amount: m.amount + other.amount,
-		currency: m.currency,
-	}, nil
+func (a *BaseAggregate) Record(event events.Event) {
+	a.EventRecorder.Record(event)
 }
 EOGO
 
 ########################################
-# Quantity
+# README.md
 ########################################
 
-cat > internal/platform/shared/quantity/quantity.go <<'EOGO'
-package quantity
+cat > internal/platform/domain/README.md <<'EOGO'
+# Domain Package
 
-import "errors"
+This package contains the fundamental building blocks used by every
+bounded context in Mwenza.
 
-var ErrNegativeQuantity = errors.New("quantity cannot be negative")
+Rules:
 
-type Quantity struct {
-	value int64
-}
-
-func New(v int64) (Quantity, error) {
-	if v < 0 {
-		return Quantity{}, ErrNegativeQuantity
-	}
-
-	return Quantity{value: v}, nil
-}
-
-func (q Quantity) Value() int64 {
-	return q.value
-}
+- Business logic lives in the domain.
+- Infrastructure depends on the domain.
+- The domain never depends on infrastructure.
+- Aggregates emit domain events.
+- Aggregates enforce invariants.
 EOGO
 
 ########################################
 # Tests
 ########################################
 
-cat > internal/platform/shared/money/money_test.go <<'EOGO'
-package money
+cat > internal/platform/domain/eventrecorder_test.go <<'EOGO'
+package domain
 
 import (
 	"testing"
+	"time"
 
-	"github.com/mwenza/mwenza/internal/platform/shared/currency"
+	"github.com/mwenza/mwenza/internal/platform/ids"
 )
 
-func TestAdd(t *testing.T) {
-	a := New(100, currency.KES)
-	b := New(200, currency.KES)
-
-	c, err := a.Add(b)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if c.Amount() != 300 {
-		t.Fatalf("expected 300 got %d", c.Amount())
-	}
+type fakeEvent struct {
+	id ids.ID
 }
-EOGO
 
-cat > internal/platform/shared/quantity/quantity_test.go <<'EOGO'
-package quantity
+func (f fakeEvent) EventID() ids.ID {
+	return f.id
+}
 
-import "testing"
+func (f fakeEvent) EventName() string {
+	return "fake"
+}
 
-func TestNegativeQuantity(t *testing.T) {
-	_, err := New(-1)
+func (f fakeEvent) OccurredAt() time.Time {
+	return time.Now()
+}
 
-	if err == nil {
-		t.Fatal("expected error")
+func TestEventRecorder(t *testing.T) {
+	var recorder EventRecorder
+
+	recorder.Record(fakeEvent{
+		id: ids.New(),
+	})
+
+	if len(recorder.PendingEvents()) != 1 {
+		t.Fatalf("expected 1 event")
+	}
+
+	recorder.ClearEvents()
+
+	if len(recorder.PendingEvents()) != 0 {
+		t.Fatalf("expected no events")
 	}
 }
 EOGO
