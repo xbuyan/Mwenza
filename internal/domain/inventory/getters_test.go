@@ -12,15 +12,20 @@ func TestInventoryGetters(t *testing.T) {
 		t.Fatalf("unexpected product id")
 	}
 
-	if inv.OnHand() != 0 {
+	if inv.OnHand().Value() != 0 {
 		t.Fatalf("expected onHand = 0")
 	}
 
-	if inv.Reserved() != 0 {
+	if inv.Reserved().Value() != 0 {
 		t.Fatalf("expected reserved = 0")
 	}
 
-	if inv.Available() != 0 {
+	available, err := inv.Available()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if available.Value() != 0 {
 		t.Fatalf("expected available = 0")
 	}
 }

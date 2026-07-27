@@ -4,16 +4,15 @@ import "testing"
 
 func TestCreateInventory(t *testing.T) {
 	inv, err := New("prod-001")
-
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if inv.onHand != 0 {
+	if inv.OnHand().Value() != 0 {
 		t.Fatalf("expected zero on hand")
 	}
 
-	if inv.reserved != 0 {
+	if inv.Reserved().Value() != 0 {
 		t.Fatalf("expected zero reserved")
 	}
 }

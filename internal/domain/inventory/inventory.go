@@ -1,13 +1,17 @@
 package inventory
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/mwenza/mwenza/internal/platform/shared/quantity"
+)
 
 var ErrEmptyProductID = errors.New("product id cannot be empty")
 
 type Inventory struct {
 	productID string
-	onHand    int
-	reserved  int
+	onHand    quantity.Quantity
+	reserved  quantity.Quantity
 }
 
 func New(productID string) (*Inventory, error) {
@@ -15,9 +19,14 @@ func New(productID string) (*Inventory, error) {
 		return nil, ErrEmptyProductID
 	}
 
+	zero, err := quantity.New(0)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Inventory{
 		productID: productID,
-		onHand:    0,
-		reserved:  0,
+		onHand:    zero,
+		reserved:  zero,
 	}, nil
 }
