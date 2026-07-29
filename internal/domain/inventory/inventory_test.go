@@ -1,9 +1,13 @@
 package inventory
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/mwenza/mwenza/internal/platform/ids"
+)
 
 func TestCreateInventory(t *testing.T) {
-	inv, err := New("prod-001")
+	inv, err := New(ids.New())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -18,7 +22,9 @@ func TestCreateInventory(t *testing.T) {
 }
 
 func TestCreateInventoryWithoutProduct(t *testing.T) {
-	_, err := New("")
+	var id ids.ID
+
+	_, err := New(id)
 
 	if err != ErrEmptyProductID {
 		t.Fatalf("expected %v got %v", ErrEmptyProductID, err)

@@ -1,8 +1,11 @@
 package inventory
 
-import "github.com/mwenza/mwenza/internal/platform/shared/quantity"
+import (
+	"github.com/mwenza/mwenza/internal/platform/ids"
+	"github.com/mwenza/mwenza/internal/platform/shared/quantity"
+)
 
-func (i *Inventory) ProductID() string {
+func (i *Inventory) ProductID() ids.ID {
 	return i.productID
 }
 
