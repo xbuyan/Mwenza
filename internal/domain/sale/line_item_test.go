@@ -11,7 +11,7 @@ import (
 func TestCreateLineItem(t *testing.T) {
 	qty, _ := quantity.New(10)
 
-	price, _ := money.New(750, currency.KES)
+	price := money.New(750, currency.KES)
 
 	item, err := NewLineItem(
 		"prod-001",
@@ -35,7 +35,7 @@ func TestCreateLineItem(t *testing.T) {
 
 func TestEmptyProductID(t *testing.T) {
 	qty, _ := quantity.New(1)
-	price, _ := money.New(100, currency.KES)
+	price := money.New(100, currency.KES)
 
 	_, err := NewLineItem("", "Item", qty, price)
 

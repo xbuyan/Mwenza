@@ -1,6 +1,8 @@
 package product
 
-func (p *Product) ID() string {
+import "github.com/mwenza/mwenza/internal/platform/ids"
+
+func (p *Product) ID() ids.ID {
 	return p.id
 }
 

@@ -1,6 +1,10 @@
 package product
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/mwenza/mwenza/internal/platform/ids"
+)
 
 func TestNewProduct(t *testing.T) {
 	tests := []struct {
@@ -13,7 +17,7 @@ func TestNewProduct(t *testing.T) {
 	}{
 		{
 			name:    "valid product",
-			id:      "prod-001",
+			id:      ids.New().String(),
 			sku:     "CEM-001",
 			product: "Bamburi Cement 50kg",
 			unit:    UnitBag,
@@ -29,7 +33,7 @@ func TestNewProduct(t *testing.T) {
 		},
 		{
 			name:    "missing sku",
-			id:      "prod-001",
+			id:      ids.New().String(),
 			sku:     "",
 			product: "Bamburi Cement 50kg",
 			unit:    UnitBag,
@@ -37,7 +41,7 @@ func TestNewProduct(t *testing.T) {
 		},
 		{
 			name:    "missing name",
-			id:      "prod-001",
+			id:      ids.New().String(),
 			sku:     "CEM-001",
 			product: "",
 			unit:    UnitBag,
@@ -45,7 +49,7 @@ func TestNewProduct(t *testing.T) {
 		},
 		{
 			name:    "missing unit",
-			id:      "prod-001",
+			id:      ids.New().String(),
 			sku:     "CEM-001",
 			product: "Bamburi Cement 50kg",
 			unit:    "",
@@ -55,7 +59,17 @@ func TestNewProduct(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := New(tt.id, tt.sku, tt.product, tt.unit)
+			var id ids.ID
+
+			if tt.id != "" {
+				var err error
+				id, err = ids.Parse(tt.id)
+				if err != nil {
+					t.Fatalf("unexpected test id: %v", err)
+				}
+			}
+
+			_, err := New(id, tt.sku, tt.product, tt.unit)
 
 			if err != tt.wantErr {
 				t.Fatalf("expected %v, got %v", tt.wantErr, err)

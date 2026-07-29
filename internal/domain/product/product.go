@@ -1,7 +1,9 @@
 package product
 
+import "github.com/mwenza/mwenza/internal/platform/ids"
+
 type Product struct {
-	id          string
+	id          ids.ID
 	sku         SKU
 	name        string
 	description string
@@ -9,8 +11,8 @@ type Product struct {
 	status      Status
 }
 
-func New(id string, sku SKU, name string, unit Unit) (*Product, error) {
-	if id == "" {
+func New(id ids.ID, sku SKU, name string, unit Unit) (*Product, error) {
+	if id.IsZero() {
 		return nil, ErrEmptyID
 	}
 
