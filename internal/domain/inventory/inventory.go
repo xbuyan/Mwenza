@@ -3,6 +3,7 @@ package inventory
 import (
 	"errors"
 
+	platformevents "github.com/mwenza/mwenza/internal/platform/events"
 	"github.com/mwenza/mwenza/internal/platform/ids"
 	"github.com/mwenza/mwenza/internal/platform/shared/quantity"
 )
@@ -10,6 +11,8 @@ import (
 var ErrEmptyProductID = errors.New("product id cannot be empty")
 
 type Inventory struct {
+	platformevents.AggregateRoot
+
 	productID ids.ID
 	onHand    quantity.Quantity
 	reserved  quantity.Quantity
@@ -26,8 +29,9 @@ func New(productID ids.ID) (*Inventory, error) {
 	}
 
 	return &Inventory{
-		productID: productID,
-		onHand:    zero,
-		reserved:  zero,
+		AggregateRoot: platformevents.AggregateRoot{},
+		productID:     productID,
+		onHand:        zero,
+		reserved:      zero,
 	}, nil
 }

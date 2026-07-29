@@ -3,6 +3,7 @@ package inventory
 import (
 	"errors"
 
+	inventoryevents "github.com/mwenza/mwenza/internal/domain/inventory/events"
 	"github.com/mwenza/mwenza/internal/platform/shared/quantity"
 )
 
@@ -14,6 +15,13 @@ func (i *Inventory) ReceiveStock(q quantity.Quantity) error {
 	}
 
 	i.onHand = i.onHand.Add(q)
+
+	i.Record(
+		inventoryevents.NewStockReceived(
+			i.productID,
+			q,
+		),
+	)
 
 	return nil
 }

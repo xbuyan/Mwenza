@@ -3,16 +3,22 @@ package inventory
 import (
 	"testing"
 
+	"github.com/mwenza/mwenza/internal/platform/ids"
 	"github.com/mwenza/mwenza/internal/platform/shared/quantity"
 )
 
 func TestReceiveStock(t *testing.T) {
-	inv, err := New("prod-001")
+	productID := ids.New()
+
+	inv, err := New(productID)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	q, _ := quantity.New(50)
+	q, err := quantity.New(50)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if err := inv.ReceiveStock(q); err != nil {
 		t.Fatal(err)
@@ -33,13 +39,49 @@ func TestReceiveStock(t *testing.T) {
 }
 
 func TestReceiveZeroStock(t *testing.T) {
-	inv, _ := New("prod-001")
+	productID := ids.New()
 
-	q, _ := quantity.New(0)
+	inv, err := New(productID)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	err := inv.ReceiveStock(q)
+	q, err := quantity.New(0)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = inv.ReceiveStock(q)
 
 	if err != ErrInvalidReceiveQuantity {
 		t.Fatalf("expected %v, got %v", ErrInvalidReceiveQuantity, err)
+	}
+}
+
+func TestReceiveStockRecordsEvent(t *testing.T) {
+	productID := ids.New()
+
+	inv, err := New(productID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	qty, err := quantity.New(10)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := inv.ReceiveStock(qty); err != nil {
+		t.Fatal(err)
+	}
+
+	events := inv.Pull()
+
+	if len(events) != 1 {
+		t.Fatalf("expected 1 event, got %d", len(events))
+	}
+
+	if events[0].EventName() != "inventory.stock_received" {
+		t.Fatalf("unexpected event %s", events[0].EventName())
 	}
 }
