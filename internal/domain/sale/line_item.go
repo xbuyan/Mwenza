@@ -3,6 +3,7 @@ package sale
 import (
 	"errors"
 
+	"github.com/mwenza/mwenza/internal/platform/ids"
 	"github.com/mwenza/mwenza/internal/platform/shared/money"
 	"github.com/mwenza/mwenza/internal/platform/shared/quantity"
 )
@@ -13,20 +14,20 @@ var (
 )
 
 type LineItem struct {
-	productID   string
+	productID   ids.ID
 	productName string
 	quantity    quantity.Quantity
 	unitPrice   money.Money
 }
 
 func NewLineItem(
-	productID string,
+	productID ids.ID,
 	productName string,
 	qty quantity.Quantity,
 	price money.Money,
 ) (LineItem, error) {
 
-	if productID == "" {
+	if productID.IsZero() {
 		return LineItem{}, ErrEmptyProductID
 	}
 

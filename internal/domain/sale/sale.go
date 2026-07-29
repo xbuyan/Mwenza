@@ -1,16 +1,20 @@
 package sale
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/mwenza/mwenza/internal/platform/ids"
+)
 
 var ErrEmptySaleID = errors.New("sale id cannot be empty")
 
 type Sale struct {
-	id     string
+	id     ids.ID
 	status Status
 }
 
-func New(id string) (*Sale, error) {
-	if id == "" {
+func New(id ids.ID) (*Sale, error) {
+	if id.IsZero() {
 		return nil, ErrEmptySaleID
 	}
 

@@ -3,6 +3,7 @@ package sale
 import (
 	"testing"
 
+	"github.com/mwenza/mwenza/internal/platform/ids"
 	"github.com/mwenza/mwenza/internal/platform/shared/currency"
 	"github.com/mwenza/mwenza/internal/platform/shared/money"
 	"github.com/mwenza/mwenza/internal/platform/shared/quantity"
@@ -10,11 +11,11 @@ import (
 
 func TestCreateLineItem(t *testing.T) {
 	qty, _ := quantity.New(10)
-
 	price := money.New(750, currency.KES)
+	productID := ids.New()
 
 	item, err := NewLineItem(
-		"prod-001",
+		productID,
 		"Bamburi Cement 50kg",
 		qty,
 		price,
@@ -24,7 +25,7 @@ func TestCreateLineItem(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if item.productID != "prod-001" {
+	if item.productID != productID {
 		t.Fatal("unexpected product id")
 	}
 
@@ -37,7 +38,9 @@ func TestEmptyProductID(t *testing.T) {
 	qty, _ := quantity.New(1)
 	price := money.New(100, currency.KES)
 
-	_, err := NewLineItem("", "Item", qty, price)
+	var productID ids.ID
+
+	_, err := NewLineItem(productID, "Item", qty, price)
 
 	if err != ErrEmptyProductID {
 		t.Fatal("expected empty product id error")

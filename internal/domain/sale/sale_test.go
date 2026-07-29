@@ -1,14 +1,20 @@
 package sale
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/mwenza/mwenza/internal/platform/ids"
+)
 
 func TestCreateSale(t *testing.T) {
-	s, err := New("sale-001")
+	id := ids.New()
+
+	s, err := New(id)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if s.id != "sale-001" {
+	if s.id != id {
 		t.Fatalf("unexpected sale id")
 	}
 
@@ -18,7 +24,9 @@ func TestCreateSale(t *testing.T) {
 }
 
 func TestCreateSaleWithoutID(t *testing.T) {
-	_, err := New("")
+	var id ids.ID
+
+	_, err := New(id)
 
 	if err != ErrEmptySaleID {
 		t.Fatalf("expected %v got %v", ErrEmptySaleID, err)
