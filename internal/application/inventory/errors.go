@@ -2,4 +2,7 @@ package inventory
 
 import "errors"
 
-var ErrRepositoryNotFound = errors.New("repository entity not found")
+var (
+	ErrRepositoryNotFound = errors.New("repository entity not found")
+	ErrInventoryNotFound  = errors.New("inventory not found")
+)
