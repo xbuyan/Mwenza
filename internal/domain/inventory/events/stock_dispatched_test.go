@@ -17,6 +17,14 @@ func TestStockDispatched(t *testing.T) {
 
 	event := NewStockDispatched(productID, qty)
 
+	if event.EventID().IsZero() {
+		t.Fatal("expected event ID to be non-zero")
+	}
+
+	if event.OccurredAt().IsZero() {
+		t.Fatal("expected occurred-at timestamp to be non-zero")
+	}
+
 	if event.EventName() != StockDispatchedEventName {
 		t.Fatalf(
 			"expected event name %q, got %q",
