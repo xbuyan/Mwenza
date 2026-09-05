@@ -27,8 +27,6 @@ func (i *Inventory) ReserveStock(q quantity.Quantity) error {
 		return ErrInsufficientAvailableStock
 	}
 
-	_ = remaining // confirms the subtraction succeeded
-
 	i.reserved = i.reserved.Add(q)
 
 	i.Record(
