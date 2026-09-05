@@ -3,6 +3,7 @@ package inventory
 import (
 	"errors"
 
+	inventoryevents "github.com/mwenza/mwenza/internal/domain/inventory/events"
 	"github.com/mwenza/mwenza/internal/platform/shared/quantity"
 )
 
@@ -14,5 +15,13 @@ func (i *Inventory) StockCount(actual quantity.Quantity) error {
 	}
 
 	i.onHand = actual
+
+	i.Record(
+		inventoryevents.NewStockCounted(
+			i.productID,
+			actual,
+		),
+	)
+
 	return nil
 }
