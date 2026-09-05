@@ -124,6 +124,67 @@ func TestDispatchZeroQuantity(t *testing.T) {
 		)
 	}
 }
+
+func TestDispatchReservedStockExactlyReservedQuantity(t *testing.T) {
+	inv, err := New("prod-001")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	received, err := quantity.New(100)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := inv.ReceiveStock(received); err != nil {
+		t.Fatal(err)
+	}
+
+	reserved, err := quantity.New(40)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := inv.ReserveStock(reserved); err != nil {
+		t.Fatal(err)
+	}
+
+	inv.Pull()
+
+	if err := inv.DispatchReservedStock(reserved); err != nil {
+		t.Fatal(err)
+	}
+
+	if inv.OnHand().Value() != 60 {
+		t.Fatalf("expected on hand 60, got %d", inv.OnHand().Value())
+	}
+
+	if inv.Reserved().Value() != 0 {
+		t.Fatalf("expected reserved 0, got %d", inv.Reserved().Value())
+	}
+
+	available, err := inv.Available()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if available.Value() != 60 {
+		t.Fatalf("expected available 60, got %d", available.Value())
+	}
+
+	events := inv.Pull()
+	if len(events) != 1 {
+		t.Fatalf("expected 1 event, got %d", len(events))
+	}
+
+	event, ok := events[0].(inventoryevents.StockDispatched)
+	if !ok {
+		t.Fatalf("expected StockDispatched event, got %T", events[0])
+	}
+
+	if event.Quantity.Value() != 40 {
+		t.Fatalf("expected dispatched quantity 40, got %d", event.Quantity.Value())
+	}
+}
+
 func TestDispatchReservedStockRejectsZero(t *testing.T) {
 	inv, _ := New("prod-001")
 
@@ -133,11 +194,11 @@ func TestDispatchReservedStockRejectsZero(t *testing.T) {
 	reserved, _ := quantity.New(40)
 	_ = inv.ReserveStock(reserved)
 
-	_ = inv.Pull()
+	inv.Pull()
 
-	dispatch, _ := quantity.New(0)
+	zero, _ := quantity.New(0)
 
-	err := inv.DispatchReservedStock(dispatch)
+	err := inv.DispatchReservedStock(zero)
 	if !errors.Is(err, ErrInvalidDispatchQuantity) {
 		t.Fatalf("expected ErrInvalidDispatchQuantity, got %v", err)
 	}
@@ -150,11 +211,11 @@ func TestDispatchReservedStockRejectsZero(t *testing.T) {
 		t.Fatalf("expected reserved 40, got %d", inv.Reserved().Value())
 	}
 
-	events := inv.Pull()
-	if len(events) != 0 {
+	if events := inv.Pull(); len(events) != 0 {
 		t.Fatalf("expected no events on failed dispatch, got %d", len(events))
 	}
 }
+
 func TestDispatchReservedStockRejectsInsufficientReservedStock(t *testing.T) {
 	inv, _ := New("prod-001")
 
@@ -164,7 +225,7 @@ func TestDispatchReservedStockRejectsInsufficientReservedStock(t *testing.T) {
 	reserved, _ := quantity.New(40)
 	_ = inv.ReserveStock(reserved)
 
-	_ = inv.Pull()
+	inv.Pull()
 
 	dispatch, _ := quantity.New(41)
 
@@ -181,8 +242,7 @@ func TestDispatchReservedStockRejectsInsufficientReservedStock(t *testing.T) {
 		t.Fatalf("expected reserved 40, got %d", inv.Reserved().Value())
 	}
 
-	events := inv.Pull()
-	if len(events) != 0 {
+	if events := inv.Pull(); len(events) != 0 {
 		t.Fatalf("expected no events on failed dispatch, got %d", len(events))
 	}
 }
