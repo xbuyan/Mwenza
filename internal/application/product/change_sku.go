@@ -29,7 +29,7 @@ func (h *ChangeSKUHandler) Handle(
 ) error {
 	product, err := h.repository.FindByID(ctx, cmd.ID)
 	if err != nil {
-		return err
+		return translateRepositoryError(err)
 	}
 
 	if product == nil {

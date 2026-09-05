@@ -3,7 +3,6 @@ package product
 import (
 	"context"
 
-	domainproduct "github.com/mwenza/mwenza/internal/domain/product"
 	"github.com/mwenza/mwenza/internal/platform/ids"
 )
 
@@ -28,7 +27,7 @@ func (h *RenameHandler) Handle(
 ) error {
 	product, err := h.repository.FindByID(ctx, cmd.ID)
 	if err != nil {
-		return err
+		return translateRepositoryError(err)
 	}
 
 	if product == nil {
