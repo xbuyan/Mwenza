@@ -3,10 +3,13 @@ package inventory
 import (
 	"errors"
 
+	inventoryevents "github.com/mwenza/mwenza/internal/domain/inventory/events"
 	"github.com/mwenza/mwenza/internal/platform/shared/quantity"
 )
 
-var ErrInvalidDispatchQuantity = errors.New("dispatch quantity must be greater than zero")
+var ErrInvalidDispatchQuantity = errors.New(
+	"dispatch quantity must be greater than zero",
+)
 
 func (i *Inventory) DispatchReservedStock(q quantity.Quantity) error {
 	if q.IsZero() {
@@ -26,6 +29,13 @@ func (i *Inventory) DispatchReservedStock(q quantity.Quantity) error {
 
 	i.reserved = reservedRemaining
 	i.onHand = onHandRemaining
+
+	i.Record(
+		inventoryevents.NewStockDispatched(
+			i.productID,
+			q,
+		),
+	)
 
 	return nil
 }

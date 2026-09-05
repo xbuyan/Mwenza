@@ -3,6 +3,7 @@ package inventory
 import (
 	"errors"
 
+	inventoryevents "github.com/mwenza/mwenza/internal/domain/inventory/events"
 	"github.com/mwenza/mwenza/internal/platform/shared/quantity"
 )
 
@@ -14,8 +15,10 @@ const (
 )
 
 var (
-	ErrInvalidAdjustmentQuantity = errors.New("adjustment quantity must be greater than zero")
-	ErrAdjustmentBelowReserved   = errors.New("adjustment would reduce stock below reserved quantity")
+	ErrInvalidAdjustmentQuantity  = errors.New("adjustment quantity must be greater than zero")
+	ErrInvalidAdjustmentDirection = errors.New("invalid adjustment direction")
+	ErrInsufficientStock          = errors.New("insufficient stock")
+	ErrAdjustmentBelowReserved    = errors.New("adjustment would reduce stock below reserved quantity")
 )
 
 func (i *Inventory) AdjustStock(direction AdjustmentDirection, q quantity.Quantity) error {
@@ -26,12 +29,11 @@ func (i *Inventory) AdjustStock(direction AdjustmentDirection, q quantity.Quanti
 	switch direction {
 	case Increase:
 		i.onHand = i.onHand.Add(q)
-		return nil
 
 	case Decrease:
 		newOnHand, err := i.onHand.Subtract(q)
 		if err != nil {
-			return ErrAdjustmentBelowReserved
+			return ErrInsufficientStock
 		}
 
 		if _, err := newOnHand.Subtract(i.reserved); err != nil {
@@ -39,9 +41,18 @@ func (i *Inventory) AdjustStock(direction AdjustmentDirection, q quantity.Quanti
 		}
 
 		i.onHand = newOnHand
-		return nil
 
 	default:
-		return errors.New("invalid adjustment direction")
+		return ErrInvalidAdjustmentDirection
 	}
+
+	i.Record(
+		inventoryevents.NewStockAdjusted(
+			i.productID,
+			q,
+			int(direction),
+		),
+	)
+
+	return nil
 }

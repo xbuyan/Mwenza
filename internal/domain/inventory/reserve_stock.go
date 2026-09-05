@@ -3,6 +3,7 @@ package inventory
 import (
 	"errors"
 
+	inventoryevents "github.com/mwenza/mwenza/internal/domain/inventory/events"
 	"github.com/mwenza/mwenza/internal/platform/shared/quantity"
 )
 
@@ -29,6 +30,13 @@ func (i *Inventory) ReserveStock(q quantity.Quantity) error {
 	_ = remaining // confirms the subtraction succeeded
 
 	i.reserved = i.reserved.Add(q)
+
+	i.Record(
+		inventoryevents.NewStockReserved(
+			i.productID,
+			q,
+		),
+	)
 
 	return nil
 }

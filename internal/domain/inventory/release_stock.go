@@ -3,6 +3,7 @@ package inventory
 import (
 	"errors"
 
+	inventoryevents "github.com/mwenza/mwenza/internal/domain/inventory/events"
 	"github.com/mwenza/mwenza/internal/platform/shared/quantity"
 )
 
@@ -22,6 +23,13 @@ func (i *Inventory) ReleaseReservedStock(q quantity.Quantity) error {
 	}
 
 	i.reserved = remaining
+
+	i.Record(
+		inventoryevents.NewStockReservationReleased(
+			i.productID,
+			q,
+		),
+	)
 
 	return nil
 }
